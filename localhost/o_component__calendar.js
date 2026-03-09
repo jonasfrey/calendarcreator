@@ -14,7 +14,7 @@ let a_s_day_name = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 let o_component__calendar = {
     name: 'component-calendar',
     template: (await f_o_html_from_o_js({
-        class: "calendar_page",
+        ':class': "'calendar_page theme_' + s_theme",
         a_o: [
             {
                 class: "calendar_controls no_print",
@@ -80,6 +80,23 @@ let o_component__calendar = {
                         ]
                     },
                     {
+                        s_tag: "select",
+                        class: "calendar_select",
+                        'v-model': "s_theme",
+                        a_o: [
+                            {
+                                s_tag: "option",
+                                value: "dark",
+                                innerText: "Dark",
+                            },
+                            {
+                                s_tag: "option",
+                                value: "light",
+                                innerText: "Light",
+                            },
+                        ]
+                    },
+                    {
                         s_tag: "div",
                         class: "interactable calendar_btn calendar_btn_print",
                         'v-on:click': "f_print",
@@ -133,6 +150,7 @@ let o_component__calendar = {
             a_s_month_name,
             a_s_day_name,
             s_paper_size: 'A3',
+            s_theme: 'dark',
         };
     },
     computed: {

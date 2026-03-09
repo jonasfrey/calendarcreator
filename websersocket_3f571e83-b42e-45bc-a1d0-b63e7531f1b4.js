@@ -304,54 +304,54 @@ let f_handler = async function(o_request, o_conninfo) {
                 "You don't have to be productive right now."
             ];
             let b_utterance_generating = false;
-            setInterval(async function() {
-                let s_msg = a_s_msg_annoying[Math.floor(Math.random() * a_s_msg_annoying.length)];
-                // send toast
+            // setInterval(async function() {
+            //     let s_msg = a_s_msg_annoying[Math.floor(Math.random() * a_s_msg_annoying.length)];
+            //     // send toast
 
-                // test server-side syncdata: update first student's name
-                let o_student = o_state.a_o_student?.[0];
-                if(o_student){
-                    let o = o_wsmsg__syncdata.f_v_sync({
-                        s_name_table: 'a_o_student',
-                        s_operation: 'update',
-                        o_data: { n_id: o_student.n_id, s_name: `changed from server ${Math.random().toString(36).substring(2, 7)}` }
-                    });
-                    console.log(o)
-                }
+            //     // test server-side syncdata: update first student's name
+            //     let o_student = o_state.a_o_student?.[0];
+            //     if(o_student){
+            //         let o = o_wsmsg__syncdata.f_v_sync({
+            //             s_name_table: 'a_o_student',
+            //             s_operation: 'update',
+            //             o_data: { n_id: o_student.n_id, s_name: `changed from server ${Math.random().toString(36).substring(2, 7)}` }
+            //         });
+            //         console.log(o)
+            //     }
 
-                o_socket.send(JSON.stringify(
-                    f_o_wsmsg(
-                        o_wsmsg__logmsg.s_name,
-                        f_o_logmsg(
-                            s_msg,
-                            true,
-                            true,
-                            s_o_logmsg_s_type__info,
-                            Date.now(),
-                            5000
-                        )
-                    )
-                ));
-                // find or create utterance audio for this message
-                if(b_utterance_generating) return;
-                let o_utterance_data = null;
-                try {
-                    b_utterance_generating = true;
-                    o_utterance_data = await f_o_uttdatainfo__read_or_create(s_msg);
-                } catch(o_err) {
-                    console.error('utterance generation failed:', o_err.message);
-                } finally {
-                    b_utterance_generating = false;
-                }
-                if(o_utterance_data && o_utterance_data.o_fsnode){
-                    o_socket.send(JSON.stringify(
-                        f_o_wsmsg(
-                            o_wsmsg__utterance.s_name,
-                            o_utterance_data
-                        )
-                    ));
-                }
-             },5000);
+            //     o_socket.send(JSON.stringify(
+            //         f_o_wsmsg(
+            //             o_wsmsg__logmsg.s_name,
+            //             f_o_logmsg(
+            //                 s_msg,
+            //                 true,
+            //                 true,
+            //                 s_o_logmsg_s_type__info,
+            //                 Date.now(),
+            //                 5000
+            //             )
+            //         )
+            //     ));
+            //     // find or create utterance audio for this message
+            //     if(b_utterance_generating) return;
+            //     let o_utterance_data = null;
+            //     try {
+            //         b_utterance_generating = true;
+            //         o_utterance_data = await f_o_uttdatainfo__read_or_create(s_msg);
+            //     } catch(o_err) {
+            //         console.error('utterance generation failed:', o_err.message);
+            //     } finally {
+            //         b_utterance_generating = false;
+            //     }
+            //     if(o_utterance_data && o_utterance_data.o_fsnode){
+            //         o_socket.send(JSON.stringify(
+            //             f_o_wsmsg(
+            //                 o_wsmsg__utterance.s_name,
+            //                 o_utterance_data
+            //             )
+            //         ));
+            //     }
+            //  },5000);
 
         };
 
