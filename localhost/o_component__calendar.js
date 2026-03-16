@@ -16,6 +16,26 @@ let a_s_month_short = [
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
 ];
 
+let f_build_cells_mini = function(n_year, n_month) {
+    let o_first = new Date(n_year, n_month, 1);
+    let n_days_in_month = new Date(n_year, n_month + 1, 0).getDate();
+    let n_start_day = (o_first.getDay() + 6) % 7;
+    let a_o = [];
+    for (let n = 0; n < n_start_day; n++) {
+        a_o.push({ n_day: 0 });
+    }
+    for (let n = 1; n <= n_days_in_month; n++) {
+        a_o.push({ n_day: n });
+    }
+    let n_remainder = a_o.length % 7;
+    if (n_remainder > 0) {
+        for (let n = 0; n < 7 - n_remainder; n++) {
+            a_o.push({ n_day: 0 });
+        }
+    }
+    return a_o;
+};
+
 let f_build_cells_full = function(n_year, n_month) {
     let o_first = new Date(n_year, n_month, 1);
     let n_days_in_month = new Date(n_year, n_month + 1, 0).getDate();
@@ -94,6 +114,51 @@ let f_a_o_butterfly = function(n_year, n_month, n_cell_count) {
         a_o.push(a);
     }
     return a_o;
+};
+
+let a_s_bug_emoji = ['\uD83D\uDC1E', '\uD83D\uDC1B', '\uD83D\uDC1C', '\uD83E\uDEB2', '\uD83E\uDD97'];
+
+let f_a_o_bug = function(n_year, n_month, n_cell_count) {
+    let f_rng = f_make_rng(n_year * 17 + n_month * 523);
+    let a_o = [];
+    for (let i = 0; i < n_cell_count; i++) {
+        let a = [];
+        if (f_rng() < 0.55) {
+            a.push({
+                s_emoji: a_s_bug_emoji[Math.floor(f_rng() * a_s_bug_emoji.length)],
+                n_size: 1.6 + f_rng() * 1.4,
+                n_rot: (f_rng() - 0.5) * 60,
+                n_opacity: 0.22 + f_rng() * 0.18,
+                b_flip: f_rng() > 0.5,
+                b_top: f_rng() > 0.5,
+                b_left: f_rng() > 0.5,
+            });
+        }
+        if (f_rng() < 0.3) {
+            a.push({
+                s_emoji: a_s_bug_emoji[Math.floor(f_rng() * a_s_bug_emoji.length)],
+                n_size: 1.4 + f_rng() * 1.2,
+                n_rot: (f_rng() - 0.5) * 60,
+                n_opacity: 0.18 + f_rng() * 0.14,
+                b_flip: f_rng() > 0.5,
+                b_top: f_rng() < 0.5,
+                b_left: f_rng() < 0.5,
+            });
+        }
+        a_o.push(a);
+    }
+    return a_o;
+};
+
+let f_s_bug_style = function(o_b) {
+    let s = 'position:absolute;pointer-events:none;font-size:' + o_b.n_size.toFixed(1) + 'rem;';
+    s += 'opacity:' + o_b.n_opacity.toFixed(2) + ';';
+    let s_transform = 'rotate(' + o_b.n_rot.toFixed(0) + 'deg)';
+    if (o_b.b_flip) s_transform += ' scaleX(-1)';
+    s += 'transform:' + s_transform + ';';
+    s += o_b.b_top ? 'top:0;' : 'bottom:0;';
+    s += o_b.b_left ? 'left:0;' : 'right:0;';
+    return s;
 };
 
 let f_s_butterfly_style = function(o_b) {
@@ -208,6 +273,26 @@ let o_component__calendar = {
                                 value: "butterflies",
                                 innerText: "Butterflies",
                             },
+                            {
+                                s_tag: "option",
+                                value: "bugs",
+                                innerText: "Bugs",
+                            },
+                        ]
+                    },
+                    {
+                        s_tag: "label",
+                        class: "calendar_checkbox_label",
+                        a_o: [
+                            {
+                                s_tag: "input",
+                                type: "checkbox",
+                                'v-model': "b_year_overview",
+                            },
+                            {
+                                s_tag: "span",
+                                innerText: " Year overview",
+                            },
                         ]
                     },
                     {
@@ -221,6 +306,7 @@ let o_component__calendar = {
             {
                 class: "calendar_grid_wrapper",
                 ':class': "'paper_' + s_paper_size",
+                'v-if': "!b_year_overview",
                 a_o: [
                     {
                         s_tag: "div",
@@ -262,6 +348,81 @@ let o_component__calendar = {
                                         ':style': "o_b.s_style",
                                         innerText: "\uD83E\uDD8B",
                                     },
+                                    {
+                                        s_tag: "span",
+                                        class: "bug_deco",
+                                        'v-for': "o_b in a_a_o_bug[n_idx]",
+                                        'v-if': "s_visual_theme === 'bugs' && o_cell.n_day",
+                                        ':style': "o_b.s_style",
+                                        innerText: "{{ o_b.s_emoji }}",
+                                    },
+                                ]
+                            },
+                        ]
+                    },
+                ]
+            },
+            {
+                class: "year_overview_wrapper paper_A3",
+                'v-if': "b_year_overview",
+                a_o: [
+                    {
+                        s_tag: "div",
+                        class: "year_overview_title",
+                        innerText: "{{ n_year }}",
+                    },
+                    {
+                        class: "year_overview_grid",
+                        a_o: [
+                            {
+                                class: "year_overview_month",
+                                'v-for': "(o_mo, n_idx) in a_o_year_overview",
+                                a_o: [
+                                    {
+                                        s_tag: "div",
+                                        class: "year_overview_month_name",
+                                        innerText: "{{ o_mo.s_name }}",
+                                    },
+                                    {
+                                        class: "year_overview_mini_grid",
+                                        a_o: [
+                                            {
+                                                s_tag: "div",
+                                                class: "year_overview_day_header",
+                                                'v-for': "s_d in a_s_day_short",
+                                                innerText: "{{ s_d }}",
+                                            },
+                                            {
+                                                s_tag: "div",
+                                                'v-for': "(o_cell, n_ci) in o_mo.a_o_cell",
+                                                ':class': "['year_overview_cell', { year_overview_cell_empty: !o_cell.n_day }]",
+                                                a_o: [
+                                                    {
+                                                        s_tag: "span",
+                                                        class: "year_overview_day_num",
+                                                        'v-if': "o_cell.n_day",
+                                                        innerText: "{{ o_cell.n_day }}",
+                                                    },
+                                                    {
+                                                        s_tag: "span",
+                                                        class: "butterfly year_overview_deco",
+                                                        'v-for': "o_b in o_mo.a_a_o_bf[n_ci]",
+                                                        'v-if': "s_visual_theme === 'butterflies' && o_cell.n_day",
+                                                        ':style': "o_b.s_style",
+                                                        innerText: "\uD83E\uDD8B",
+                                                    },
+                                                    {
+                                                        s_tag: "span",
+                                                        class: "bug_deco year_overview_deco",
+                                                        'v-for': "o_b in o_mo.a_a_o_bug[n_ci]",
+                                                        'v-if': "s_visual_theme === 'bugs' && o_cell.n_day",
+                                                        ':style': "o_b.s_style",
+                                                        innerText: "{{ o_b.s_emoji }}",
+                                                    },
+                                                ]
+                                            },
+                                        ]
+                                    },
                                 ]
                             },
                         ]
@@ -280,6 +441,8 @@ let o_component__calendar = {
             s_paper_size: 'A3',
             s_theme: 'dark',
             s_visual_theme: 'none',
+            b_year_overview: false,
+            a_s_day_short: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
         };
     },
     computed: {
@@ -294,6 +457,46 @@ let o_component__calendar = {
             return a_raw.map(function(a_b) {
                 return a_b.map(function(o_b) {
                     return { s_style: f_s_butterfly_style(o_b) };
+                });
+            });
+        },
+        a_o_year_overview: function() {
+            let n_y = this.n_year;
+            let s_vt = this.s_visual_theme;
+            let a = [];
+            for (let m = 0; m < 12; m++) {
+                let a_cells = f_build_cells_mini(n_y, m);
+                let a_a_bf = [];
+                let a_a_bg = [];
+                if (s_vt === 'butterflies') {
+                    let a_raw = f_a_o_butterfly(n_y, m, a_cells.length);
+                    a_a_bf = a_raw.map(function(a_b) {
+                        return a_b.map(function(o_b) {
+                            return { s_style: f_s_butterfly_style(o_b) };
+                        });
+                    });
+                } else if (s_vt === 'bugs') {
+                    let a_raw = f_a_o_bug(n_y, m, a_cells.length);
+                    a_a_bg = a_raw.map(function(a_b) {
+                        return a_b.map(function(o_b) {
+                            return { s_style: f_s_bug_style(o_b), s_emoji: o_b.s_emoji };
+                        });
+                    });
+                }
+                a.push({
+                    s_name: a_s_month_name[m],
+                    a_o_cell: a_cells,
+                    a_a_o_bf: a_a_bf,
+                    a_a_o_bug: a_a_bg,
+                });
+            }
+            return a;
+        },
+        a_a_o_bug: function() {
+            let a_raw = f_a_o_bug(this.n_year, this.n_month, this.a_o_cell.length);
+            return a_raw.map(function(a_b) {
+                return a_b.map(function(o_b) {
+                    return { s_style: f_s_bug_style(o_b), s_emoji: o_b.s_emoji };
                 });
             });
         },
@@ -320,18 +523,103 @@ let o_component__calendar = {
         },
         f_print: function() {
             let o_self = this;
-            let s_size = o_self.s_paper_size;
+            let s_size = o_self.b_year_overview ? 'A3' : o_self.s_paper_size;
             let s_theme_class = 'theme_' + o_self.s_theme;
             let s_visual_class = 'visual_' + o_self.s_visual_theme;
             let b_butterflies = o_self.s_visual_theme === 'butterflies';
+            let b_bugs = o_self.s_visual_theme === 'bugs';
 
             let o_container = document.createElement('div');
             o_container.className = 'print_container ' + s_theme_class + ' ' + s_visual_class;
+
+            if (o_self.b_year_overview) {
+                let o_page = document.createElement('div');
+                o_page.className = 'print_page print_page_year_overview';
+
+                let o_title = document.createElement('div');
+                o_title.className = 'year_overview_title';
+                o_title.textContent = o_self.n_year;
+                o_page.appendChild(o_title);
+
+                let o_grid = document.createElement('div');
+                o_grid.className = 'year_overview_grid';
+
+                for (let n_m = 0; n_m < 12; n_m++) {
+                    let a_cells = f_build_cells_mini(o_self.n_year, n_m);
+                    let a_a_b = b_butterflies ? f_a_o_butterfly(o_self.n_year, n_m, a_cells.length) : [];
+                    let a_a_bug = b_bugs ? f_a_o_bug(o_self.n_year, n_m, a_cells.length) : [];
+
+                    let o_mo = document.createElement('div');
+                    o_mo.className = 'year_overview_month';
+
+                    let o_name = document.createElement('div');
+                    o_name.className = 'year_overview_month_name';
+                    o_name.textContent = a_s_month_name[n_m];
+                    o_mo.appendChild(o_name);
+
+                    let o_mini = document.createElement('div');
+                    o_mini.className = 'year_overview_mini_grid';
+
+                    let a_hdr = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+                    for (let h = 0; h < 7; h++) {
+                        let o_h = document.createElement('div');
+                        o_h.className = 'year_overview_day_header';
+                        o_h.textContent = a_hdr[h];
+                        o_mini.appendChild(o_h);
+                    }
+
+                    for (let i = 0; i < a_cells.length; i++) {
+                        let o_c = document.createElement('div');
+                        o_c.className = 'year_overview_cell' + (a_cells[i].n_day ? '' : ' year_overview_cell_empty');
+                        if (a_cells[i].n_day) {
+                            let o_num = document.createElement('span');
+                            o_num.className = 'year_overview_day_num';
+                            o_num.textContent = a_cells[i].n_day;
+                            o_c.appendChild(o_num);
+                            if (b_butterflies && a_a_b[i]) {
+                                for (let j = 0; j < a_a_b[i].length; j++) {
+                                    let o_bf = document.createElement('span');
+                                    o_bf.className = 'butterfly year_overview_deco';
+                                    o_bf.textContent = '\uD83E\uDD8B';
+                                    o_bf.style.cssText = f_s_butterfly_style(a_a_b[i][j]);
+                                    o_c.appendChild(o_bf);
+                                }
+                            }
+                            if (b_bugs && a_a_bug[i]) {
+                                for (let j = 0; j < a_a_bug[i].length; j++) {
+                                    let o_bg = document.createElement('span');
+                                    o_bg.className = 'bug_deco year_overview_deco';
+                                    o_bg.textContent = a_a_bug[i][j].s_emoji;
+                                    o_bg.style.cssText = f_s_bug_style(a_a_bug[i][j]);
+                                    o_c.appendChild(o_bg);
+                                }
+                            }
+                        }
+                        o_mini.appendChild(o_c);
+                    }
+
+                    o_mo.appendChild(o_mini);
+                    o_grid.appendChild(o_mo);
+                }
+
+                o_page.appendChild(o_grid);
+                o_container.appendChild(o_page);
+
+                document.body.appendChild(o_container);
+                let o_style = document.createElement('style');
+                o_style.textContent = '@page { size: A3 landscape; margin: 10mm; }';
+                document.head.appendChild(o_style);
+                window.print();
+                document.head.removeChild(o_style);
+                document.body.removeChild(o_container);
+                return;
+            }
 
             for (let n_m = 0; n_m < 12; n_m++) {
                 let a_cells = o_self.f_build_cells(o_self.n_year, n_m);
                 let n_rows = a_cells.length / 7;
                 let a_a_b = b_butterflies ? f_a_o_butterfly(o_self.n_year, n_m, a_cells.length) : [];
+                let a_a_bug = b_bugs ? f_a_o_bug(o_self.n_year, n_m, a_cells.length) : [];
 
                 let o_page = document.createElement('div');
                 o_page.className = 'print_page';
@@ -371,6 +659,15 @@ let o_component__calendar = {
                                 o_bf.textContent = '\uD83E\uDD8B';
                                 o_bf.style.cssText = f_s_butterfly_style(a_a_b[i][j]);
                                 o_cell.appendChild(o_bf);
+                            }
+                        }
+                        if (b_bugs && a_a_bug[i]) {
+                            for (let j = 0; j < a_a_bug[i].length; j++) {
+                                let o_bg = document.createElement('span');
+                                o_bg.className = 'bug_deco';
+                                o_bg.textContent = a_a_bug[i][j].s_emoji;
+                                o_bg.style.cssText = f_s_bug_style(a_a_bug[i][j]);
+                                o_cell.appendChild(o_bg);
                             }
                         }
                     } else if (o_cell_data.s_label) {

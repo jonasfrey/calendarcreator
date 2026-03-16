@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"visual_theme\\\\|s_visual_theme\\\\|butterflies\" /home/legion5pro/code/calendarcreator --include=*.js --include=*.json --exclude-dir=venv)"
+    ]
+  }
+}
