@@ -16,6 +16,34 @@ let a_s_month_short = [
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
 ];
 
+// Seasonal artwork follows the month in both previews and printed calendars.
+let a_a_s_month_emoji = [
+    ['❄️', '⛄', '🧤'],
+    ['💕', '💌', '🌹'],
+    ['🌱', '🍀', '🌦️'],
+    ['🌷', '🐰', '🦋'],
+    ['🌸', '🐝', '🌼'],
+    ['☀️', '🍒', '🌻'],
+    ['🏖️', '🌊', '🐚'],
+    ['🌻', '🍉', '🍦'],
+    ['🍎', '🌾', '🍇'],
+    ['🎃', '👻', '🦇', '🍁'],
+    ['🍂', '🍁', '🎃', '🍄'],
+    ['🎄', '🎁', '❄️'],
+];
+
+let f_s_month_icons = function(n_month) {
+    return a_a_s_month_emoji[n_month].join(' ');
+};
+
+let f_append_month_icons = function(o_element, n_month) {
+    let o_icons = document.createElement('span');
+    o_icons.className = 'seasonal_month_icons';
+    o_icons.setAttribute('aria-hidden', 'true');
+    o_icons.textContent = f_s_month_icons(n_month);
+    o_element.appendChild(o_icons);
+};
+
 let f_build_cells_mini = function(n_year, n_month) {
     let o_first = new Date(n_year, n_month, 1);
     let n_days_in_month = new Date(n_year, n_month + 1, 0).getDate();
@@ -118,14 +146,14 @@ let f_a_o_butterfly = function(n_year, n_month, n_cell_count) {
 
 let a_s_bug_emoji = ['\uD83D\uDC1E', '\uD83D\uDC1B', '\uD83D\uDC1C', '\uD83E\uDEB2', '\uD83E\uDD97'];
 
-let f_a_o_bug = function(n_year, n_month, n_cell_count) {
+let f_a_o_icon = function(n_year, n_month, n_cell_count, a_s_emoji) {
     let f_rng = f_make_rng(n_year * 17 + n_month * 523);
     let a_o = [];
     for (let i = 0; i < n_cell_count; i++) {
         let a = [];
         if (f_rng() < 0.55) {
             a.push({
-                s_emoji: a_s_bug_emoji[Math.floor(f_rng() * a_s_bug_emoji.length)],
+                s_emoji: a_s_emoji[Math.floor(f_rng() * a_s_emoji.length)],
                 n_size: 1.6 + f_rng() * 1.4,
                 n_rot: (f_rng() - 0.5) * 60,
                 n_opacity: 0.22 + f_rng() * 0.18,
@@ -136,7 +164,7 @@ let f_a_o_bug = function(n_year, n_month, n_cell_count) {
         }
         if (f_rng() < 0.3) {
             a.push({
-                s_emoji: a_s_bug_emoji[Math.floor(f_rng() * a_s_bug_emoji.length)],
+                s_emoji: a_s_emoji[Math.floor(f_rng() * a_s_emoji.length)],
                 n_size: 1.4 + f_rng() * 1.2,
                 n_rot: (f_rng() - 0.5) * 60,
                 n_opacity: 0.18 + f_rng() * 0.14,
@@ -150,7 +178,32 @@ let f_a_o_bug = function(n_year, n_month, n_cell_count) {
     return a_o;
 };
 
-let f_s_bug_style = function(o_b) {
+let f_a_o_bug = function(n_year, n_month, n_cell_count) {
+    return f_a_o_icon(n_year, n_month, n_cell_count, a_s_bug_emoji);
+};
+
+let f_a_o_seasonal = function(n_year, n_month, n_cell_count) {
+    return f_a_o_icon(n_year, n_month, n_cell_count, a_a_s_month_emoji[n_month]).map(function(a_icons) {
+        return a_icons.map(function(o_icon) {
+            // Keep the upper-left day number clear in the monthly calendar.
+            o_icon.b_top = false;
+            return { s_emoji: o_icon.s_emoji, s_style: f_s_icon_style(o_icon) };
+        });
+    });
+};
+
+let f_append_seasonal_icons = function(o_element, a_icons, b_mini = false) {
+    for (let o_icon of a_icons) {
+        let o_span = document.createElement('span');
+        o_span.className = 'seasonal_deco' + (b_mini ? ' year_overview_deco' : '');
+        o_span.setAttribute('aria-hidden', 'true');
+        o_span.textContent = o_icon.s_emoji;
+        o_span.style.cssText = o_icon.s_style;
+        o_element.appendChild(o_span);
+    }
+};
+
+let f_s_icon_style = function(o_b) {
     let s = 'position:absolute;pointer-events:none;font-size:' + o_b.n_size.toFixed(1) + 'rem;';
     s += 'opacity:' + o_b.n_opacity.toFixed(2) + ';';
     let s_transform = 'rotate(' + o_b.n_rot.toFixed(0) + 'deg)';
@@ -262,7 +315,13 @@ let o_component__calendar = {
                         s_tag: "select",
                         class: "calendar_select",
                         'v-model': "s_visual_theme",
+                        'aria-label': "Calendar decorations",
                         a_o: [
+                            {
+                                s_tag: "option",
+                                value: "seasonal",
+                                innerText: "Seasonal (by month)",
+                            },
                             {
                                 s_tag: "option",
                                 value: "none",
@@ -281,17 +340,29 @@ let o_component__calendar = {
                         ]
                     },
                     {
-                        s_tag: "label",
-                        class: "calendar_checkbox_label",
+                        s_tag: "select",
+                        class: "calendar_select",
+                        'v-model': "s_year_layout",
                         a_o: [
                             {
-                                s_tag: "input",
-                                type: "checkbox",
-                                'v-model': "b_year_overview",
+                                s_tag: "option",
+                                value: "none",
+                                innerText: "Monthly view",
                             },
                             {
-                                s_tag: "span",
-                                innerText: " Year overview",
+                                s_tag: "option",
+                                value: "grid",
+                                innerText: "Year grid",
+                            },
+                            {
+                                s_tag: "option",
+                                value: "columns",
+                                innerText: "Year columns",
+                            },
+                            {
+                                s_tag: "option",
+                                value: "rows",
+                                innerText: "Year rows",
                             },
                         ]
                     },
@@ -306,12 +377,21 @@ let o_component__calendar = {
             {
                 class: "calendar_grid_wrapper",
                 ':class': "'paper_' + s_paper_size",
-                'v-if': "!b_year_overview",
+                'v-if': "s_year_layout === 'none'",
                 a_o: [
                     {
                         s_tag: "div",
                         class: "calendar_title",
-                        innerText: "{{ a_s_month_name[n_month] }} {{ n_year }}",
+                        a_o: [
+                            { s_tag: "span", innerText: "{{ a_s_month_name[n_month] }} {{ n_year }}" },
+                            {
+                                s_tag: "span",
+                                class: "seasonal_month_icons",
+                                'v-if': "s_visual_theme === 'seasonal'",
+                                'aria-hidden': "true",
+                                innerText: "{{ f_s_month_icons(n_month) }}",
+                            },
+                        ],
                     },
                     {
                         class: "calendar_grid",
@@ -342,6 +422,15 @@ let o_component__calendar = {
                                     },
                                     {
                                         s_tag: "span",
+                                        class: "seasonal_deco",
+                                        'v-for': "o_icon in a_a_o_seasonal[n_idx]",
+                                        'v-if': "s_visual_theme === 'seasonal' && o_cell.n_day",
+                                        ':style': "o_icon.s_style",
+                                        'aria-hidden': "true",
+                                        innerText: "{{ o_icon.s_emoji }}",
+                                    },
+                                    {
+                                        s_tag: "span",
                                         class: "butterfly",
                                         'v-for': "o_b in a_a_o_butterfly[n_idx]",
                                         'v-if': "s_visual_theme === 'butterflies' && o_cell.n_day",
@@ -364,7 +453,7 @@ let o_component__calendar = {
             },
             {
                 class: "year_overview_wrapper paper_A3",
-                'v-if': "b_year_overview",
+                'v-if': "s_year_layout === 'grid'",
                 a_o: [
                     {
                         s_tag: "div",
@@ -381,7 +470,16 @@ let o_component__calendar = {
                                     {
                                         s_tag: "div",
                                         class: "year_overview_month_name",
-                                        innerText: "{{ o_mo.s_name }}",
+                                        a_o: [
+                                            { s_tag: "span", innerText: "{{ o_mo.s_name }}" },
+                                            {
+                                                s_tag: "span",
+                                                class: "seasonal_month_icons",
+                                                'v-if': "s_visual_theme === 'seasonal'",
+                                                'aria-hidden': "true",
+                                                innerText: "{{ f_s_month_icons(n_idx) }}",
+                                            },
+                                        ],
                                     },
                                     {
                                         class: "year_overview_mini_grid",
@@ -402,6 +500,15 @@ let o_component__calendar = {
                                                         class: "year_overview_day_num",
                                                         'v-if': "o_cell.n_day",
                                                         innerText: "{{ o_cell.n_day }}",
+                                                    },
+                                                    {
+                                                        s_tag: "span",
+                                                        class: "seasonal_deco year_overview_deco",
+                                                        'v-for': "o_icon in o_mo.a_a_o_seasonal[n_ci]",
+                                                        'v-if': "s_visual_theme === 'seasonal' && o_cell.n_day",
+                                                        ':style': "o_icon.s_style",
+                                                        'aria-hidden': "true",
+                                                        innerText: "{{ o_icon.s_emoji }}",
                                                     },
                                                     {
                                                         s_tag: "span",
@@ -429,6 +536,68 @@ let o_component__calendar = {
                     },
                 ]
             },
+            {
+                class: "year_columns_wrapper paper_A3",
+                'v-if': "s_year_layout === 'columns'",
+                a_o: [
+                    {
+                        s_tag: "div",
+                        class: "year_overview_title",
+                        innerText: "{{ n_year }}",
+                    },
+                    {
+                        class: "year_columns_grid",
+                        a_o: [
+                            {
+                                s_tag: "div",
+                                'v-for': "o_c in a_o_year_columns_flat",
+                                ':class': "o_c.s_cls",
+                                a_o: [
+                                    { s_tag: "span", innerText: "{{ o_c.s_text }}" },
+                                    {
+                                        s_tag: "span",
+                                        class: "seasonal_month_icons",
+                                        'v-if': "s_visual_theme === 'seasonal' && o_c.n_month != null",
+                                        'aria-hidden': "true",
+                                        innerText: "{{ f_s_month_icons(o_c.n_month) }}",
+                                    },
+                                ],
+                            },
+                        ]
+                    },
+                ]
+            },
+            {
+                class: "year_rows_wrapper paper_A3",
+                'v-if': "s_year_layout === 'rows'",
+                a_o: [
+                    {
+                        s_tag: "div",
+                        class: "year_overview_title",
+                        innerText: "{{ n_year }}",
+                    },
+                    {
+                        class: "year_rows_grid",
+                        a_o: [
+                            {
+                                s_tag: "div",
+                                'v-for': "o_c in a_o_year_rows_flat",
+                                ':class': "o_c.s_cls",
+                                a_o: [
+                                    { s_tag: "span", innerText: "{{ o_c.s_text }}" },
+                                    {
+                                        s_tag: "span",
+                                        class: "seasonal_month_icons",
+                                        'v-if': "s_visual_theme === 'seasonal' && o_c.n_month != null",
+                                        'aria-hidden': "true",
+                                        innerText: "{{ f_s_month_icons(o_c.n_month) }}",
+                                    },
+                                ],
+                            },
+                        ]
+                    },
+                ]
+            },
         ]
     })).outerHTML,
     data: function() {
@@ -440,8 +609,8 @@ let o_component__calendar = {
             a_s_day_name,
             s_paper_size: 'A3',
             s_theme: 'dark',
-            s_visual_theme: 'none',
-            b_year_overview: false,
+            s_visual_theme: 'seasonal',
+            s_year_layout: 'none',
             a_s_day_short: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
         };
     },
@@ -451,6 +620,10 @@ let o_component__calendar = {
         },
         n_rows: function() {
             return this.a_o_cell.length / 7;
+        },
+        a_a_o_seasonal: function() {
+            if (this.s_visual_theme !== 'seasonal') return [];
+            return f_a_o_seasonal(this.n_year, this.n_month, this.a_o_cell.length);
         },
         a_a_o_butterfly: function() {
             let a_raw = f_a_o_butterfly(this.n_year, this.n_month, this.a_o_cell.length);
@@ -479,7 +652,7 @@ let o_component__calendar = {
                     let a_raw = f_a_o_bug(n_y, m, a_cells.length);
                     a_a_bg = a_raw.map(function(a_b) {
                         return a_b.map(function(o_b) {
-                            return { s_style: f_s_bug_style(o_b), s_emoji: o_b.s_emoji };
+                            return { s_style: f_s_icon_style(o_b), s_emoji: o_b.s_emoji };
                         });
                     });
                 }
@@ -488,7 +661,65 @@ let o_component__calendar = {
                     a_o_cell: a_cells,
                     a_a_o_bf: a_a_bf,
                     a_a_o_bug: a_a_bg,
+                    a_a_o_seasonal: s_vt === 'seasonal' ? f_a_o_seasonal(n_y, m, a_cells.length) : [],
                 });
+            }
+            return a;
+        },
+        a_o_year_columns_flat: function() {
+            let n_y = this.n_year;
+            let a = [];
+            // header row: corner + 12 month headers
+            a.push({ s_cls: 'year_columns_corner', s_text: '' });
+            for (let m = 0; m < 12; m++) {
+                a.push({ s_cls: 'year_columns_month_header' + (m % 2 === 1 ? ' year_columns_header_alt' : ''), s_text: a_s_month_short[m], n_month: m });
+            }
+            // 31 day rows
+            for (let d = 1; d <= 31; d++) {
+                a.push({ s_cls: 'year_columns_day_label', s_text: '' + d });
+                for (let m = 0; m < 12; m++) {
+                    let n_days = new Date(n_y, m + 1, 0).getDate();
+                    let s_cls = 'year_columns_cell';
+                    let s_text = '';
+                    if (d > n_days) {
+                        s_cls += ' year_columns_cell_empty';
+                    } else {
+                        let n_dow = new Date(n_y, m, d).getDay();
+                        if (n_dow === 0 || n_dow === 6) s_cls += ' year_columns_cell_weekend';
+                        s_text = '' + d;
+                    }
+                    if (m % 2 === 1) s_cls += ' year_columns_cell_alt';
+                    a.push({ s_cls: s_cls, s_text: s_text });
+                }
+            }
+            return a;
+        },
+        a_o_year_rows_flat: function() {
+            let n_y = this.n_year;
+            let a = [];
+            // header row: corner + 31 day headers
+            a.push({ s_cls: 'year_rows_corner', s_text: '' });
+            for (let d = 1; d <= 31; d++) {
+                a.push({ s_cls: 'year_rows_day_header', s_text: '' + d });
+            }
+            // 12 month rows
+            for (let m = 0; m < 12; m++) {
+                let n_days = new Date(n_y, m + 1, 0).getDate();
+                let b_alt = m % 2 === 1;
+                a.push({ s_cls: 'year_rows_month_label' + (b_alt ? ' year_rows_month_label_alt' : ''), s_text: a_s_month_short[m], n_month: m });
+                for (let d = 1; d <= 31; d++) {
+                    let s_cls = 'year_rows_cell';
+                    let s_text = '';
+                    if (d > n_days) {
+                        s_cls += ' year_rows_cell_empty';
+                    } else {
+                        let n_dow = new Date(n_y, m, d).getDay();
+                        if (n_dow === 0 || n_dow === 6) s_cls += ' year_rows_cell_weekend';
+                        s_text = '' + d;
+                    }
+                    if (b_alt) s_cls += ' year_rows_cell_alt';
+                    a.push({ s_cls: s_cls, s_text: s_text });
+                }
             }
             return a;
         },
@@ -496,12 +727,13 @@ let o_component__calendar = {
             let a_raw = f_a_o_bug(this.n_year, this.n_month, this.a_o_cell.length);
             return a_raw.map(function(a_b) {
                 return a_b.map(function(o_b) {
-                    return { s_style: f_s_bug_style(o_b), s_emoji: o_b.s_emoji };
+                    return { s_style: f_s_icon_style(o_b), s_emoji: o_b.s_emoji };
                 });
             });
         },
     },
     methods: {
+        f_s_month_icons,
         f_prev_month: function() {
             if (this.n_month === 0) {
                 this.n_month = 11;
@@ -523,86 +755,192 @@ let o_component__calendar = {
         },
         f_print: function() {
             let o_self = this;
-            let s_size = o_self.b_year_overview ? 'A3' : o_self.s_paper_size;
+            let s_size = o_self.s_year_layout !== 'none' ? 'A3' : o_self.s_paper_size;
             let s_theme_class = 'theme_' + o_self.s_theme;
             let s_visual_class = 'visual_' + o_self.s_visual_theme;
             let b_butterflies = o_self.s_visual_theme === 'butterflies';
             let b_bugs = o_self.s_visual_theme === 'bugs';
+            let b_seasonal = o_self.s_visual_theme === 'seasonal';
 
             let o_container = document.createElement('div');
             o_container.className = 'print_container ' + s_theme_class + ' ' + s_visual_class;
 
-            if (o_self.b_year_overview) {
+            if (o_self.s_year_layout !== 'none') {
                 let o_page = document.createElement('div');
-                o_page.className = 'print_page print_page_year_overview';
+                let s_page_class = 'print_page';
+
+                if (o_self.s_year_layout === 'grid') {
+                    s_page_class += ' print_page_year_overview';
+                } else if (o_self.s_year_layout === 'columns') {
+                    s_page_class += ' print_page_year_columns';
+                } else if (o_self.s_year_layout === 'rows') {
+                    s_page_class += ' print_page_year_rows';
+                }
+                o_page.className = s_page_class;
 
                 let o_title = document.createElement('div');
                 o_title.className = 'year_overview_title';
                 o_title.textContent = o_self.n_year;
                 o_page.appendChild(o_title);
 
-                let o_grid = document.createElement('div');
-                o_grid.className = 'year_overview_grid';
+                if (o_self.s_year_layout === 'grid') {
+                    let o_grid = document.createElement('div');
+                    o_grid.className = 'year_overview_grid';
 
-                for (let n_m = 0; n_m < 12; n_m++) {
-                    let a_cells = f_build_cells_mini(o_self.n_year, n_m);
-                    let a_a_b = b_butterflies ? f_a_o_butterfly(o_self.n_year, n_m, a_cells.length) : [];
-                    let a_a_bug = b_bugs ? f_a_o_bug(o_self.n_year, n_m, a_cells.length) : [];
+                    for (let n_m = 0; n_m < 12; n_m++) {
+                        let a_cells = f_build_cells_mini(o_self.n_year, n_m);
+                        let a_a_b = b_butterflies ? f_a_o_butterfly(o_self.n_year, n_m, a_cells.length) : [];
+                        let a_a_bug = b_bugs ? f_a_o_bug(o_self.n_year, n_m, a_cells.length) : [];
+                        let a_a_seasonal = b_seasonal ? f_a_o_seasonal(o_self.n_year, n_m, a_cells.length) : [];
 
-                    let o_mo = document.createElement('div');
-                    o_mo.className = 'year_overview_month';
+                        let o_mo = document.createElement('div');
+                        o_mo.className = 'year_overview_month';
 
-                    let o_name = document.createElement('div');
-                    o_name.className = 'year_overview_month_name';
-                    o_name.textContent = a_s_month_name[n_m];
-                    o_mo.appendChild(o_name);
+                        let o_name = document.createElement('div');
+                        o_name.className = 'year_overview_month_name';
+                        o_name.textContent = a_s_month_name[n_m];
+                        if (b_seasonal) f_append_month_icons(o_name, n_m);
+                        o_mo.appendChild(o_name);
 
-                    let o_mini = document.createElement('div');
-                    o_mini.className = 'year_overview_mini_grid';
+                        let o_mini = document.createElement('div');
+                        o_mini.className = 'year_overview_mini_grid';
 
-                    let a_hdr = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-                    for (let h = 0; h < 7; h++) {
-                        let o_h = document.createElement('div');
-                        o_h.className = 'year_overview_day_header';
-                        o_h.textContent = a_hdr[h];
-                        o_mini.appendChild(o_h);
-                    }
+                        let a_hdr = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+                        for (let h = 0; h < 7; h++) {
+                            let o_h = document.createElement('div');
+                            o_h.className = 'year_overview_day_header';
+                            o_h.textContent = a_hdr[h];
+                            o_mini.appendChild(o_h);
+                        }
 
-                    for (let i = 0; i < a_cells.length; i++) {
-                        let o_c = document.createElement('div');
-                        o_c.className = 'year_overview_cell' + (a_cells[i].n_day ? '' : ' year_overview_cell_empty');
-                        if (a_cells[i].n_day) {
-                            let o_num = document.createElement('span');
-                            o_num.className = 'year_overview_day_num';
-                            o_num.textContent = a_cells[i].n_day;
-                            o_c.appendChild(o_num);
-                            if (b_butterflies && a_a_b[i]) {
-                                for (let j = 0; j < a_a_b[i].length; j++) {
-                                    let o_bf = document.createElement('span');
-                                    o_bf.className = 'butterfly year_overview_deco';
-                                    o_bf.textContent = '\uD83E\uDD8B';
-                                    o_bf.style.cssText = f_s_butterfly_style(a_a_b[i][j]);
-                                    o_c.appendChild(o_bf);
+                        for (let i = 0; i < a_cells.length; i++) {
+                            let o_c = document.createElement('div');
+                            o_c.className = 'year_overview_cell' + (a_cells[i].n_day ? '' : ' year_overview_cell_empty');
+                            if (a_cells[i].n_day) {
+                                let o_num = document.createElement('span');
+                                o_num.className = 'year_overview_day_num';
+                                o_num.textContent = a_cells[i].n_day;
+                                o_c.appendChild(o_num);
+                                if (b_seasonal) f_append_seasonal_icons(o_c, a_a_seasonal[i], true);
+                                if (b_butterflies && a_a_b[i]) {
+                                    for (let j = 0; j < a_a_b[i].length; j++) {
+                                        let o_bf = document.createElement('span');
+                                        o_bf.className = 'butterfly year_overview_deco';
+                                        o_bf.textContent = '\uD83E\uDD8B';
+                                        o_bf.style.cssText = f_s_butterfly_style(a_a_b[i][j]);
+                                        o_c.appendChild(o_bf);
+                                    }
+                                }
+                                if (b_bugs && a_a_bug[i]) {
+                                    for (let j = 0; j < a_a_bug[i].length; j++) {
+                                        let o_bg = document.createElement('span');
+                                        o_bg.className = 'bug_deco year_overview_deco';
+                                        o_bg.textContent = a_a_bug[i][j].s_emoji;
+                                        o_bg.style.cssText = f_s_icon_style(a_a_bug[i][j]);
+                                        o_c.appendChild(o_bg);
+                                    }
                                 }
                             }
-                            if (b_bugs && a_a_bug[i]) {
-                                for (let j = 0; j < a_a_bug[i].length; j++) {
-                                    let o_bg = document.createElement('span');
-                                    o_bg.className = 'bug_deco year_overview_deco';
-                                    o_bg.textContent = a_a_bug[i][j].s_emoji;
-                                    o_bg.style.cssText = f_s_bug_style(a_a_bug[i][j]);
-                                    o_c.appendChild(o_bg);
-                                }
+                            o_mini.appendChild(o_c);
+                        }
+
+                        o_mo.appendChild(o_mini);
+                        o_grid.appendChild(o_mo);
+                    }
+
+                    o_page.appendChild(o_grid);
+                } else if (o_self.s_year_layout === 'columns') {
+                    let o_grid = document.createElement('div');
+                    o_grid.className = 'year_columns_grid';
+
+                    let o_corner = document.createElement('div');
+                    o_corner.className = 'year_columns_corner';
+                    o_grid.appendChild(o_corner);
+
+                    let a_linear = [];
+                    for (let m = 0; m < 12; m++) {
+                        let n_days = new Date(o_self.n_year, m + 1, 0).getDate();
+                        let a_days = [];
+                        for (let d = 1; d <= 31; d++) {
+                            if (d <= n_days) {
+                                let n_dow = new Date(o_self.n_year, m, d).getDay();
+                                a_days.push({ n_day: d, b_weekend: n_dow === 0 || n_dow === 6 });
+                            } else {
+                                a_days.push({ n_day: 0, b_weekend: false });
                             }
                         }
-                        o_mini.appendChild(o_c);
+                        a_linear.push(a_days);
+
+                        let o_hdr = document.createElement('div');
+                        o_hdr.className = 'year_columns_month_header' + (m % 2 === 1 ? ' year_columns_header_alt' : '');
+                        o_hdr.textContent = a_s_month_short[m];
+                        if (b_seasonal) f_append_month_icons(o_hdr, m);
+                        o_grid.appendChild(o_hdr);
                     }
 
-                    o_mo.appendChild(o_mini);
-                    o_grid.appendChild(o_mo);
+                    for (let d = 0; d < 31; d++) {
+                        let o_label = document.createElement('div');
+                        o_label.className = 'year_columns_day_label';
+                        o_label.textContent = d + 1;
+                        o_grid.appendChild(o_label);
+
+                        for (let m = 0; m < 12; m++) {
+                            let o_day = a_linear[m][d];
+                            let o_c = document.createElement('div');
+                            let s_cls = 'year_columns_cell';
+                            if (!o_day.n_day) s_cls += ' year_columns_cell_empty';
+                            if (o_day.b_weekend) s_cls += ' year_columns_cell_weekend';
+                            if (m % 2 === 1) s_cls += ' year_columns_cell_alt';
+                            o_c.className = s_cls;
+                            o_c.textContent = o_day.n_day || '';
+                            o_grid.appendChild(o_c);
+                        }
+                    }
+
+                    o_page.appendChild(o_grid);
+                } else if (o_self.s_year_layout === 'rows') {
+                    let o_grid = document.createElement('div');
+                    o_grid.className = 'year_rows_grid';
+
+                    let o_corner = document.createElement('div');
+                    o_corner.className = 'year_rows_corner';
+                    o_grid.appendChild(o_corner);
+
+                    for (let d = 1; d <= 31; d++) {
+                        let o_hdr = document.createElement('div');
+                        o_hdr.className = 'year_rows_day_header';
+                        o_hdr.textContent = d;
+                        o_grid.appendChild(o_hdr);
+                    }
+
+                    for (let m = 0; m < 12; m++) {
+                        let n_days = new Date(o_self.n_year, m + 1, 0).getDate();
+
+                        let o_label = document.createElement('div');
+                        o_label.className = 'year_rows_month_label' + (m % 2 === 1 ? ' year_rows_month_label_alt' : '');
+                        o_label.textContent = a_s_month_short[m];
+                        if (b_seasonal) f_append_month_icons(o_label, m);
+                        o_grid.appendChild(o_label);
+
+                        for (let d = 1; d <= 31; d++) {
+                            let o_c = document.createElement('div');
+                            let s_cls = 'year_rows_cell';
+                            if (d > n_days) {
+                                s_cls += ' year_rows_cell_empty';
+                            } else {
+                                let n_dow = new Date(o_self.n_year, m, d).getDay();
+                                if (n_dow === 0 || n_dow === 6) s_cls += ' year_rows_cell_weekend';
+                            }
+                            if (m % 2 === 1) s_cls += ' year_rows_cell_alt';
+                            o_c.className = s_cls;
+                            o_c.textContent = d <= n_days ? d : '';
+                            o_grid.appendChild(o_c);
+                        }
+                    }
+
+                    o_page.appendChild(o_grid);
                 }
 
-                o_page.appendChild(o_grid);
                 o_container.appendChild(o_page);
 
                 document.body.appendChild(o_container);
@@ -620,6 +958,7 @@ let o_component__calendar = {
                 let n_rows = a_cells.length / 7;
                 let a_a_b = b_butterflies ? f_a_o_butterfly(o_self.n_year, n_m, a_cells.length) : [];
                 let a_a_bug = b_bugs ? f_a_o_bug(o_self.n_year, n_m, a_cells.length) : [];
+                let a_a_seasonal = b_seasonal ? f_a_o_seasonal(o_self.n_year, n_m, a_cells.length) : [];
 
                 let o_page = document.createElement('div');
                 o_page.className = 'print_page';
@@ -627,6 +966,7 @@ let o_component__calendar = {
                 let o_title = document.createElement('div');
                 o_title.className = 'calendar_title';
                 o_title.textContent = a_s_month_name[n_m] + ' ' + o_self.n_year;
+                if (b_seasonal) f_append_month_icons(o_title, n_m);
                 o_page.appendChild(o_title);
 
                 let o_grid = document.createElement('div');
@@ -652,6 +992,7 @@ let o_component__calendar = {
                         o_span.className = 'calendar_day_number';
                         o_span.textContent = o_cell_data.n_day;
                         o_cell.appendChild(o_span);
+                        if (b_seasonal) f_append_seasonal_icons(o_cell, a_a_seasonal[i]);
                         if (b_butterflies && a_a_b[i]) {
                             for (let j = 0; j < a_a_b[i].length; j++) {
                                 let o_bf = document.createElement('span');
@@ -666,7 +1007,7 @@ let o_component__calendar = {
                                 let o_bg = document.createElement('span');
                                 o_bg.className = 'bug_deco';
                                 o_bg.textContent = a_a_bug[i][j].s_emoji;
-                                o_bg.style.cssText = f_s_bug_style(a_a_bug[i][j]);
+                                o_bg.style.cssText = f_s_icon_style(a_a_bug[i][j]);
                                 o_cell.appendChild(o_bg);
                             }
                         }

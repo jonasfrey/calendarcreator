@@ -13,6 +13,7 @@
     ]
   },
   "tasks": {
+    "start": "deno task run",
     "run": "B_DENO_TASK=1 deno run --allow-net --allow-read --allow-write --allow-env --allow-ffi --allow-run --env websersocket_3f571e83-b42e-45bc-a1d0-b63e7531f1b4.js",
     "stop": "pkill -f 'deno run.*websersocket_3f571e83-b42e-45bc-a1d0-b63e7531f1b4.js' || echo 'No running websersocket process found.'",
     "restart": "deno task stop && deno task run",

@@ -232,6 +232,43 @@ body {
     line-height: 1;
 }
 
+/* --- visual theme: seasonal artwork for each month --- */
+.visual_seasonal .calendar_cell {
+    overflow: hidden;
+}
+
+.visual_seasonal .calendar_day_number {
+    position: relative;
+    z-index: 1;
+}
+
+.seasonal_deco,
+.seasonal_month_icons {
+    font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+}
+
+.seasonal_month_icons {
+    display: inline-block;
+    margin-left: 0.65em;
+    font-size: 0.85em;
+    font-weight: normal;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.year_columns_month_header .seasonal_month_icons,
+.year_rows_month_label .seasonal_month_icons {
+    display: block;
+    margin: 0.3em 0;
+}
+
+.visual_seasonal .year_rows_month_label {
+    flex-direction: column;
+}
+
 /* --- year overview --- */
 .year_overview_wrapper {
     flex: 1;
@@ -317,6 +354,166 @@ body {
 
 .year_overview_deco {
     font-size: 0.7rem !important;
+}
+
+/* --- year columns layout --- */
+.year_columns_wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.year_columns_grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: auto repeat(12, 1fr);
+    grid-template-rows: auto repeat(31, 1fr);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r);
+    overflow: hidden;
+    min-height: 0;
+}
+
+.year_columns_corner {
+    background: var(--c-surface);
+    border-bottom: 2px solid var(--c-border);
+    border-right: 1px solid var(--c-border);
+}
+
+.year_columns_month_header {
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.2rem 0;
+    color: var(--c-accent);
+    background: var(--c-surface);
+    border-bottom: 2px solid var(--c-border);
+    border-right: 1px solid var(--c-border);
+}
+
+.year_columns_header_alt {
+    background: var(--c-accent-dim);
+}
+
+.year_columns_day_label {
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 0 0.3rem;
+    color: var(--c-text-dim);
+    background: var(--c-surface);
+    border-right: 2px solid var(--c-border);
+    border-bottom: 1px solid var(--c-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.year_columns_cell {
+    font-size: 0.55rem;
+    color: var(--c-text-mute);
+    opacity: 0.5;
+    border-right: 1px solid rgba(128, 128, 128, 0.15);
+    border-bottom: 1px solid rgba(128, 128, 128, 0.08);
+    padding: 1px 2px 0 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.year_columns_cell_empty {
+    background: var(--c-cell-empty);
+    color: transparent;
+}
+
+.year_columns_cell_alt {
+    background: var(--c-surface);
+}
+
+.year_columns_cell_weekend {
+    background: var(--c-accent-dim);
+}
+
+/* --- year rows layout --- */
+.year_rows_wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.year_rows_grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: auto repeat(31, 1fr);
+    grid-template-rows: auto repeat(12, 1fr);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r);
+    overflow: hidden;
+    min-height: 0;
+}
+
+.year_rows_corner {
+    background: var(--c-surface);
+    border-bottom: 1px solid var(--c-border);
+    border-right: 2px solid var(--c-border);
+}
+
+.year_rows_day_header {
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 0.2rem 0;
+    color: var(--c-text-dim);
+    background: var(--c-surface);
+    border-bottom: 1px solid var(--c-border);
+    border-right: 1px solid var(--c-border);
+}
+
+.year_rows_month_label {
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0 0.3rem;
+    color: var(--c-accent);
+    background: var(--c-surface);
+    border-right: 2px solid var(--c-border);
+    border-bottom: 1px solid var(--c-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.year_rows_cell {
+    font-size: 0.55rem;
+    color: var(--c-text-mute);
+    opacity: 0.5;
+    border-right: 1px solid rgba(128, 128, 128, 0.08);
+    border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+    padding: 1px 2px 0 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+}
+
+.year_rows_cell_empty {
+    background: var(--c-cell-empty);
+    color: transparent;
+}
+
+.year_rows_cell_alt {
+    background: var(--c-surface);
+}
+
+.year_rows_month_label_alt {
+    background: var(--c-accent-dim);
+}
+
+.year_rows_cell_weekend {
+    background: var(--c-accent-dim);
 }
 
 /* --- checkbox label --- */
@@ -474,5 +671,160 @@ body {
 
     .print_page_year_overview .year_overview_deco {
         font-size: 0.6rem !important;
+    }
+
+    /* year columns print */
+    .print_page_year_columns {
+        padding: 5mm;
+    }
+
+    .print_page_year_columns .year_columns_grid {
+        flex: 1;
+        display: grid;
+        grid-template-columns: auto repeat(12, 1fr);
+        grid-template-rows: auto repeat(31, 1fr);
+        border: 1px solid var(--c-border);
+        overflow: hidden;
+        min-height: 0;
+    }
+
+    .print_page_year_columns .year_columns_corner {
+        background: var(--c-surface);
+        border-bottom: 2px solid var(--c-border);
+        border-right: 1px solid var(--c-border);
+    }
+
+    .print_page_year_columns .year_columns_month_header {
+        text-align: center;
+        font-weight: 700;
+        font-size: 0.7rem;
+        padding: 0.1rem 0;
+        color: var(--c-accent);
+        background: var(--c-surface);
+        border-bottom: 2px solid var(--c-border);
+        border-right: 1px solid var(--c-border);
+    }
+
+    .print_page_year_columns .year_columns_day_label {
+        text-align: center;
+        font-weight: 600;
+        font-size: 0.6rem;
+        color: var(--c-text-dim);
+        background: var(--c-surface);
+        border-right: 1px solid var(--c-border);
+        border-bottom: 1px solid var(--c-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .print_page_year_columns .year_columns_cell {
+        text-align: center;
+        font-size: 0.6rem;
+        color: var(--c-text);
+        border-right: 1px solid var(--c-border);
+        border-bottom: 1px solid var(--c-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .print_page_year_columns .year_columns_cell_empty {
+        background: var(--c-cell-empty);
+        color: transparent;
+    }
+
+    .print_page_year_columns .year_columns_cell_alt {
+        background: var(--c-surface);
+    }
+
+    .print_page_year_columns .year_columns_header_alt {
+        background: var(--c-accent-dim);
+    }
+
+    .print_page_year_columns .year_columns_cell_weekend {
+        background: var(--c-accent-dim);
+    }
+
+    .print_page_year_columns .year_columns_cell {
+        border-right: 1px solid rgba(128, 128, 128, 0.15);
+        border-bottom: 1px solid rgba(128, 128, 128, 0.08);
+    }
+
+    /* year rows print */
+    .print_page_year_rows {
+        padding: 5mm;
+    }
+
+    .print_page_year_rows .year_rows_grid {
+        flex: 1;
+        display: grid;
+        grid-template-columns: auto repeat(31, 1fr);
+        grid-template-rows: auto repeat(12, 1fr);
+        border: 1px solid var(--c-border);
+        overflow: hidden;
+        min-height: 0;
+    }
+
+    .print_page_year_rows .year_rows_corner {
+        background: var(--c-surface);
+        border-bottom: 1px solid var(--c-border);
+        border-right: 2px solid var(--c-border);
+    }
+
+    .print_page_year_rows .year_rows_day_header {
+        text-align: center;
+        font-weight: 600;
+        font-size: 0.6rem;
+        color: var(--c-text-dim);
+        background: var(--c-surface);
+        border-bottom: 1px solid var(--c-border);
+        border-right: 1px solid var(--c-border);
+    }
+
+    .print_page_year_rows .year_rows_month_label {
+        text-align: center;
+        font-weight: 700;
+        font-size: 0.7rem;
+        color: var(--c-accent);
+        background: var(--c-surface);
+        border-right: 2px solid var(--c-border);
+        border-bottom: 1px solid var(--c-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .print_page_year_rows .year_rows_cell {
+        text-align: center;
+        font-size: 0.6rem;
+        color: var(--c-text);
+        border-right: 1px solid var(--c-border);
+        border-bottom: 1px solid var(--c-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .print_page_year_rows .year_rows_cell_empty {
+        background: var(--c-cell-empty);
+        color: transparent;
+    }
+
+    .print_page_year_rows .year_rows_cell_alt {
+        background: var(--c-surface);
+    }
+
+    .print_page_year_rows .year_rows_month_label_alt {
+        background: var(--c-accent-dim);
+    }
+
+    .print_page_year_rows .year_rows_cell_weekend {
+        background: var(--c-accent-dim);
+    }
+
+    .print_page_year_rows .year_rows_cell {
+        border-right: 1px solid rgba(128, 128, 128, 0.08);
+        border-bottom: 1px solid rgba(128, 128, 128, 0.15);
     }
 }

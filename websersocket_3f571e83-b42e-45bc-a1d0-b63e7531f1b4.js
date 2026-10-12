@@ -167,9 +167,11 @@ let f_handler = async function(o_request, o_conninfo) {
     if (o_request.headers.get('upgrade') === 'websocket') {
         // TODO: implement authentication before upgrading the WebSocket connection
         // e.g. validate a token from query params or cookies against a secret from .env
-        let { socket: o_socket, response: o_response } = Deno.upgradeWebSocket(o_request);
+        // read everything needed from the request BEFORE upgrading: the upgrade takes
+        // over the request and any later access throws "Request closed"
         let s_ip = o_request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
         || o_conninfo.remoteAddr.hostname;
+        let { socket: o_socket, response: o_response } = Deno.upgradeWebSocket(o_request);
         let o_wsclient = f_o_model_instance(
             o_model__o_wsclient,
             {
